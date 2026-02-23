@@ -36,4 +36,9 @@ document.addEventListener('DOMContentLoaded', function () {
             overlay.classList.remove('active');
         });
     }
+
+    // Al final del archivo:
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 });

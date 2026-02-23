@@ -1,27 +1,40 @@
 # finance/controllers/finanzas_controller.py
 import json
+from django.shortcuts import redirect
 from django.http import HttpResponse, JsonResponse
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from core.render import render_view
 from datetime import datetime
 from finance.services.finanzas_service import FinanzasService
 
-
 def finanzas_dashboard(request):
-    # Por el momento forzamos el ID 1 (Johann).
-    # En el futuro esto vendrá de: request.session.get('usuario_id')
-    usuario_id = 1
+    print("\n" + ">>>" * 10)
+    print(" [DEBUG] Cargando Dashboard de Finanzas...")
+    
+    # Verificamos qué hay en la sesión
+    usuario_id = request.session.get('usuario_id')
+    nombre_usuario = request.session.get('usuario_nombre', 'Johann Yamil')
+    
+    print(f" [DEBUG] Usuario ID en Sesión: {usuario_id}")
+    print(f" [DEBUG] Nombre en Sesión: {nombre_usuario}")
 
-    # 1. Obtenemos los datos puros desde nuestro Service
+    if not usuario_id:
+        print(" [AUTH] No hay ID. Redirigiendo...")
+        return redirect('/acceso')
+
+    # 1. Datos del Service
     categorias_obj = FinanzasService.obtener_categorias()
     transacciones_obj = FinanzasService.obtener_transacciones(usuario_id)
     resumen = FinanzasService.obtener_resumen_financiero(usuario_id)
 
-    # 2. Convertimos los objetos a diccionarios para que el HTML los lea fácilmente
+    print(f" [DEBUG] Transacciones encontradas: {len(transacciones_obj)}")
+    print(f" [DEBUG] Resumen calculado: Balance {resumen['balance']}")
+
+    # 2. Conversión
     categorias_dict = [cat.to_dict() for cat in categorias_obj]
     transacciones_dict = [t.to_dict() for t in transacciones_obj]
-
-    # 3. Armamos el contexto real
+       # 3. Armamos el contexto real
     context = {
         "titulo": "Control de Gastos - Finance Buddie",
         "user_name": "Johann Yamil",
@@ -48,8 +61,15 @@ def finanzas_dashboard(request):
 @csrf_exempt
 def gestionar_transaccion(request, t_id=None):
     """Endpoint único para CRUD de transacciones vía Fetch API"""
-    usuario_id = 1
+    usuario_id = request.session.get('usuario_id')
+    
+    print(f"\n [API] Petición {request.method} recibida")
+    print(f" [API] Usuario ID detectado: {usuario_id}")
 
+    if not usuario_id:
+        print(" [ERROR API] Intento de posteo sin sesión activa.")
+        return JsonResponse({'status': 'error', 'message': 'Sesión inválida'}, status=401)
+    
     try:
         # CREAR: POST /finanzas/gestion/
         if request.method == 'POST':

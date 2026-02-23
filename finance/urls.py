@@ -5,19 +5,27 @@ import re
 from .controllers.dashboard_controller import home_dashboard
 from .controllers.error_controller import not_found_action
 from .controllers.finanzas_controller import finanzas_dashboard, gestionar_transaccion
+from .controllers.auth_controller import auth_page, login_action, register_action, logout_action
 
 def get_route_handler(path, method):
-    # --- Rutas de Vistas (HTML) ---
+    clean_path = path.rstrip('/') if path != '/' else path
     routes = {
         ('/', 'GET'): lambda request: home_dashboard(request),
         ('/finanzas', 'GET'): lambda request: finanzas_dashboard(request),
         
+        # --- Rutas de Autenticación ---
+        ('/acceso', 'GET'): lambda request: auth_page(request), 
+        ('/login', 'POST'): lambda request: login_action(request),
+        ('/register', 'POST'): lambda request: register_action(request),
+        ('/logout', 'GET'): lambda request: logout_action(request),
+
         # --- API Endpoints ---
         ('/api/finanzas', 'POST'): lambda request: gestionar_transaccion(request),
     }
+  
 
     # Intentar match exacto primero (GET y POST general)
-    handler = routes.get((path, method))
+    handler = routes.get((clean_path, method))
     if handler:
         return handler
 

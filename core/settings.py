@@ -138,3 +138,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Configuración de sesión en settings.py
+# 1. Duración de la sesión en segundos (3 horas = 3 * 60 * 60)
+SESSION_COOKIE_AGE = 10800  
+
+# 2. Si es True, la sesión expira al cerrar el navegador. 
+# Lo ponemos en False para que se mantenga abierta aunque cierres la pestaña.
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# 3. (Opcional) Guarda la sesión en cada petición para que el tiempo de 3 horas 
+# se reinicie mientras el usuario esté activo.
+SESSION_SAVE_EVERY_REQUEST = True
+LOGIN_URL = '/acceso'  # Redirige aquí si intentan entrar a una ruta protegida sin login
+
+# Con esto Django ya no buscará la tabla 'django_session' en SQL Server
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
