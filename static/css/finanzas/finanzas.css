@@ -257,24 +257,45 @@
     border-color: #1e293b;
 }
 
+/* --- BOTÓN FLOTANTE (+) --- */
+.fab-add {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 60px;
+    height: 60px;
+    background-color: #22c55e; /* Verde de la imagen */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+    cursor: pointer;
+    z-index: 1000;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.fab-add:hover {
+    background-color: #16a34a;
+    transform: scale(1.1);
+}
+
 /* Modal */
+/* --- MODAL --- */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.4);
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 2000;
 }
 
-.modal-overlay.active {
-    display: flex;
-}
 
+.modal-overlay.active { display: flex; }
 .modal-content {
     background: white;
     padding: 30px;
@@ -314,32 +335,101 @@
     margin-top: 20px;
 }
 
-/* --- BOTÓN FLOTANTE (FAB) --- */
-.fab-add {
-    position: fixed;
-    bottom: 40px;
-    right: 40px;
-    width: 60px;
-    height: 60px;
-    background-color: #22c55e; /* Verde que pediste */
-    color: white;
-    border: none;
-    border-radius: 50%;
+/* --- ESTILOS PARA EL DROPDOWN DE OPCIONES --- */
+
+/* Contenedor de la derecha para alinear monto y puntos */
+.item-right {
     display: flex;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
+    gap: 15px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Botón de tres puntos */
+.btn-options {
+    background: none;
+    border: none;
+    color: #94a3b8;
     cursor: pointer;
-    transition: transform 0.2s, background-color 0.2s;
-    z-index: 100;
+    padding: 5px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s, color 0.2s;
 }
 
-.fab-add:hover {
-    background-color: #16a34a;
-    transform: scale(1.05);
+.btn-options:hover {
+    background: #f1f5f9;
+    color: #4d4dff;
 }
 
-.fab-add svg {
-    width: 28px;
-    height: 28px;
+/* Menú desplegable oculto por defecto */
+.dropdown-menu {
+    display: none; 
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    min-width: 140px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    z-index: 1000;
+    border: 1px solid #f1f5f9;
+    padding: 8px;
+    margin-top: 5px;
+}
+
+/* Mostrar cuando el padre tiene clase .active */
+.dropdown.active .dropdown-menu {
+    display: block;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Botones dentro del menú */
+.dropdown-menu button {
+    width: 100%;
+    padding: 10px 12px;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dropdown-menu button:hover {
+    background: #f8fafc;
+}
+
+.dropdown-menu button i {
+    color: #94a3b8;
+}
+
+/* Estilo especial para eliminar */
+.dropdown-menu button.delete-opt {
+    color: #ef4444;
+}
+
+.dropdown-menu button.delete-opt:hover {
+    background: #fef2f2;
+}
+
+.btn-ghost {
+    background: #f1f5f9;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #64748b;
 }

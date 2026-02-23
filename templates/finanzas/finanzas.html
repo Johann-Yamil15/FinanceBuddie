@@ -1,6 +1,6 @@
 <section class="finance-container">
     <link rel="stylesheet" href="/static/css/finanzas/finanzas.css">
-    
+
     <div class="balance-section">
         <p class="section-label">Balance Total</p>
         <div class="balance-header">
@@ -35,7 +35,12 @@
 
     <div class="transaction-list">
         {% for t in transacciones %}
-        <div class="transaction-item" data-type="{{ t.tipo }}">
+        <div class="transaction-item" 
+             data-id="{{ t.id }}" 
+             data-monto="{{ t.monto }}" 
+             data-tipo="{{ t.tipo }}" 
+             data-categoria-id="{{ t.categoria_id }}">
+            
             <div class="item-left">
                 <div class="category-icon icon-{{ t.tipo }}">
                     <i data-lucide="{{ t.icon }}"></i>
@@ -45,20 +50,37 @@
                     <p>{{ t.fecha }}</p>
                 </div>
             </div>
-            <div class="item-monto monto-{{ t.tipo }}">
-                {% if t.tipo == 'ingreso' %}+{% else %}-{% endif %}${{ t.monto }}
+
+            <div class="item-right">
+                <div class="item-monto monto-{{ t.tipo }}">
+                    {% if t.tipo == 'ingreso' %}+{% else %}-{% endif %}${{ t.monto }}
+                </div>
+
+                <div class="dropdown">
+                    <button class="btn-options" onclick="toggleDropdown(event, this)">
+                        <i data-lucide="more-vertical" size="18"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <button onclick="prepararEdicion(this)">
+                            <i data-lucide="pencil" size="14"></i> Editar
+                        </button>
+                        <button onclick="eliminarTransaccion('{{ t.id }}')" class="delete-opt">
+                            <i data-lucide="trash-2" size="14"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
 
-    <button class="fab-add" onclick="toggleModal(true)" title="Nuevo Movimiento">
+    <button class="fab-add" onclick="abrirModalCrear()" title="Nuevo Movimiento">
         <i data-lucide="plus"></i>
     </button>
 
     <div id="modal-transaction" class="modal-overlay">
         <div class="modal-content">
-            <h3>Nuevo Movimiento</h3>
+            <h3 id="modal-title">Nuevo Movimiento</h3>
             <form id="transaction-form">
                 <div class="form-group">
                     <label>Tipo</label>
@@ -71,13 +93,13 @@
                 </div>
                 <div class="form-group">
                     <label>Monto</label>
-                    <input type="number" step="0.01" placeholder="0.00" required>
+                    <input type="number" name="monto" step="0.01" placeholder="0.00" required>
                 </div>
-                 <div class="form-group">
+                <div class="form-group">
                     <label>Categoría</label>
                     <select name="categoria" required>
                         {% for categoria in categorias %}
-                        <option value="{{ categoria|lower }}">{{ categoria }}</option>
+                        <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
                         {% endfor %}
                     </select>
                 </div>

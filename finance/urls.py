@@ -1,39 +1,46 @@
 # finance/urls.py
 from django.urls import re_path
+from django.views.decorators.csrf import csrf_exempt
+import re
 from .controllers.dashboard_controller import home_dashboard
 from .controllers.error_controller import not_found_action
-from .controllers.finanzas_controller import finanzas_dashboard
+from .controllers.finanzas_controller import finanzas_dashboard, gestionar_transaccion
 
-# 1. Tu lógica de diccionario (Se queda igual)
 def get_route_handler(path, method):
+    # --- Rutas de Vistas (HTML) ---
     routes = {
         ('/', 'GET'): lambda request: home_dashboard(request),
         ('/finanzas', 'GET'): lambda request: finanzas_dashboard(request),
         
+        # --- API Endpoints ---
+        ('/api/finanzas', 'POST'): lambda request: gestionar_transaccion(request),
     }
 
+    # Intentar match exacto primero (GET y POST general)
     handler = routes.get((path, method))
     if handler:
-        return handler, '200 OK'
+        return handler
 
-    return not_found_action, '404 Not Found'
+    # --- Manejo de Rutas con ID (PUT y DELETE) ---
+    # Ejemplo: /api/finanzas/5
+    match = re.match(r'^/api/finanzas/(\+?\d+)$', path)
+    if match:
+        t_id = int(match.group(1))
+        if method == 'PUT':
+            return lambda request: gestionar_transaccion(request, t_id)
+        if method == 'DELETE':
+            return lambda request: gestionar_transaccion(request, t_id)
 
-# 2. El "Puente" para Django
+    return not_found_action
+
+@csrf_exempt
 def master_dispatcher(request):
-    """
-    Esta función recibe TODAS las peticiones y las filtra 
-    usando tu diccionario get_route_handler.
-    """
     path = request.path
     method = request.method
     
-    handler, status = get_route_handler(path, method)
-    
-    # Ejecuta la función encontrada (home_dashboard o not_found_action)
+    handler = get_route_handler(path, method)
     return handler(request)
 
-# 3. La variable que Django busca (OBLIGATORIA)
 urlpatterns = [
-    # Esta línea le dice a Django: "Cualquier cosa (^.*$) mándala al dispatcher"
     re_path(r'^.*$', master_dispatcher),
 ]
