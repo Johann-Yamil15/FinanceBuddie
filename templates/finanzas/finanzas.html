@@ -1,0 +1,93 @@
+<section class="finance-container">
+    <link rel="stylesheet" href="/static/css/finanzas/finanzas.css">
+    
+    <div class="balance-section">
+        <p class="section-label">Balance Total</p>
+        <div class="balance-header">
+            <h1 class="balance-amount color-primary">${{ balance_total }}</h1>
+            <span class="badge-growth">
+                <i data-lucide="trending-up" size="14"></i> {{ porcentaje_ahorro }}%
+            </span>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper stat-ingreso"><i data-lucide="arrow-down-left" size="20"></i></div>
+            <div class="stat-info-card">
+                <p class="section-label">Ingresos</p>
+                <div class="stat-value ingresos-color">${{ ingresos }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon-wrapper stat-gasto"><i data-lucide="arrow-up-right" size="20"></i></div>
+            <div class="stat-info-card">
+                <p class="section-label">Gastos</p>
+                <div class="stat-value gastos-color">${{ gastos }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="history-header">
+        <h3 class="recent-title color-primary">Transacciones Recientes</h3>
+        <a href="#" class="link-ver-todas">Ver todas</a>
+    </div>
+
+    <div class="transaction-list">
+        {% for t in transacciones %}
+        <div class="transaction-item" data-type="{{ t.tipo }}">
+            <div class="item-left">
+                <div class="category-icon icon-{{ t.tipo }}">
+                    <i data-lucide="{{ t.icon }}"></i>
+                </div>
+                <div class="item-info">
+                    <h4 class="color-primary">{{ t.categoria }}</h4>
+                    <p>{{ t.fecha }}</p>
+                </div>
+            </div>
+            <div class="item-monto monto-{{ t.tipo }}">
+                {% if t.tipo == 'ingreso' %}+{% else %}-{% endif %}${{ t.monto }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button class="fab-add" onclick="toggleModal(true)" title="Nuevo Movimiento">
+        <i data-lucide="plus"></i>
+    </button>
+
+    <div id="modal-transaction" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Nuevo Movimiento</h3>
+            <form id="transaction-form">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <div class="type-selector">
+                        <input type="radio" name="tipo" value="gasto" id="type-gasto" checked>
+                        <label for="type-gasto">Gasto</label>
+                        <input type="radio" name="tipo" value="ingreso" id="type-ingreso">
+                        <label for="type-ingreso">Ingreso</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Monto</label>
+                    <input type="number" step="0.01" placeholder="0.00" required>
+                </div>
+                 <div class="form-group">
+                    <label>Categoría</label>
+                    <select name="categoria" required>
+                        {% for categoria in categorias %}
+                        <option value="{{ categoria|lower }}">{{ categoria }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-ghost" onclick="toggleModal(false)">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/finanzas/finanzas.js"></script>
+</section>
