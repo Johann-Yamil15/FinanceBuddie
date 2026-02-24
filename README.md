@@ -16,6 +16,10 @@ Aplicación web para el control de gastos y finanzas personales, construida con 
 * **Conector DB:** `pymssql` / `mssql-django`
 * **Frontend:** HTML5, CSS3, JavaScript (Vanilla), Iconos de Lucide
 
+## comandos
+
+* **Comando para ejecutar:** python manage.py runserver
+
 ## ⚙️ Requisitos Previos
 
 Antes de ejecutar el proyecto, asegúrate de tener instalado:

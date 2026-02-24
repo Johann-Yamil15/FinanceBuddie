@@ -11,14 +11,43 @@ def logout_action(request):
     logout(request)
     return redirect('/acceso')
 
+import json # <-- Asegúrate de tener esto en tus imports
+
 def login_action(request):
     if request.method == 'POST':
+        print("\n" + "="*50)
+        print(" [LOGIN] Intentando iniciar sesión...")
+        
+        # 1. Intentamos leer los datos como Formulario Tradicional
         email = request.POST.get('email')
         password = request.POST.get('password')
         
-        success, user = AuthService.login_user(request, email, password)
-        if success:
-            return redirect('/finanzas')
+        # 2. Si vienen vacíos, significa que JavaScript los envió como JSON (Fetch)
+        if not email and not password:
+            try:
+                data = json.loads(request.body)
+                email = data.get('email')
+                password = data.get('password')
+                print(" [DEBUG] Datos recibidos en formato JSON.")
+            except Exception as e:
+                print(f" [ERROR] No se pudo leer el cuerpo de la petición: {e}")
+
+        print(f" [DEBUG] Email detectado: {email}")
+        print(f" [DEBUG] Password detectada: {'Sí (Oculta)' if password else 'VACÍO/NULA'}")
+
+        # 3. Validar con el Service
+        if email and password:
+            success, user = AuthService.login_user(request, email, password)
+            if success:
+                print(f" [SUCCESS] Login correcto para {email}. Redirigiendo...")
+                # Si usas Fetch en JS, a veces es mejor responder con JSON y que JS haga el window.location
+                # Pero si tu JS maneja bien el redirect de Django, dejamos esto:
+                return redirect('/finanzas') 
+            else:
+                print(" [WARNING] Contraseña incorrecta o usuario no encontrado.")
+        else:
+            print(" [ERROR] Faltan datos. Email o Password llegaron vacíos.")
+
         return JsonResponse({'status': 'error', 'message': 'Credenciales inválidas'}, status=401)
 
 def register_action(request):
