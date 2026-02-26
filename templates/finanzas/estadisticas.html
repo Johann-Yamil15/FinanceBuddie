@@ -1,0 +1,173 @@
+<section class="finance-container stats-dashboard">
+    <link rel="stylesheet" href="/static/css/finanzas/estadisticas.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <div class="header-section">
+        <h2 class="title-primary">Análisis Financiero</h2>
+        <p class="subtitle-text">Descubre a dónde va tu dinero y mejora tus hábitos.</p>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card score-card">
+            <div class="kpi-icon"><i data-lucide="activity"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Salud Financiera</span>
+                <h3 class="kpi-value {{ score_class }}">{{ score_text }}</h3>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon icon-danger"><i data-lucide="alert-circle"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Gasto más alto (Mes)</span>
+                <h3 class="kpi-value text-danger">${{ max_gasto }}</h3>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon icon-warning"><i data-lucide="calendar"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Día más gastalón</span>
+                <h3 class="kpi-value text-warning">{{ dia_pico }}</h3>
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon icon-info"><i data-lucide="trending-up"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-label">Ingresos este mes</span>
+                <h3 class="kpi-value text-primary">${{ comparativa.ingresos_actual|default:"0.00" }}</h3>
+                <span class="kpi-subtext">Mes pasado: ${{ comparativa.ingresos_pasado|default:"0.00" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-container dona-container">
+            <h3 class="chart-title">Distribución de Gastos</h3>
+            <div class="canvas-wrapper">
+                <canvas id="donaChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-container barras-container">
+            <h3 class="chart-title">Flujo de Caja (Últimos 6 meses)</h3>
+            <div class="canvas-wrapper">
+                <canvas id="barrasChart"></canvas>
+            </div>
+        </div>
+    </div> {{ chart_categorias.labels|json_script:"donaLabels-data" }}
+    {{ chart_categorias.values|json_script:"donaValues-data" }}
+    {{ chart_tendencia.labels|json_script:"tendenciaLabels-data" }}
+    {{ chart_tendencia.ingresos|json_script:"tendenciaIngresos-data" }}
+    {{ chart_tendencia.gastos|json_script:"tendenciaGastos-data" }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar iconos
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // AHORA LEEMOS LOS DATOS ASÍ (VS Code ya no marcará error)
+            const donaLabels = JSON.parse(document.getElementById('donaLabels-data').textContent);
+            const donaValues = JSON.parse(document.getElementById('donaValues-data').textContent);
+
+            const tendenciaLabels = JSON.parse(document.getElementById('tendenciaLabels-data').textContent);
+            const tendenciaIngresos = JSON.parse(document.getElementById('tendenciaIngresos-data').textContent);
+            const tendenciaGastos = JSON.parse(document.getElementById('tendenciaGastos-data').textContent);
+
+            // 3. Configuración Gráfica de Dona (Categorías)
+            const ctxDona = document.getElementById('donaChart').getContext('2d');
+            new Chart(ctxDona, {
+                type: 'doughnut',
+                data: {
+                    labels: donaLabels,
+                    datasets: [{
+                        data: donaValues,
+                        backgroundColor: [
+                            '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#10b981'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    label += new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(context.raw);
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 4. Configuración Gráfica de Barras (Tendencia)
+            const ctxBarras = document.getElementById('barrasChart').getContext('2d');
+            new Chart(ctxBarras, {
+                type: 'bar',
+                data: {
+                    labels: tendenciaLabels,
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: tendenciaIngresos,
+                            backgroundColor: 'rgba(16, 185, 129, 0.85)', // Verde
+                            borderRadius: 6,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Gastos',
+                            data: tendenciaGastos,
+                            backgroundColor: 'rgba(239, 68, 68, 0.85)', // Rojo
+                            borderRadius: 6,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { position: 'top', align: 'end', labels: { usePointStyle: true } },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.dataset.label + ': ' + new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(context.raw);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [5, 5], color: '#e5e7eb' },
+                            ticks: {
+                                callback: function (value) { return '$' + value; }
+                            }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</section>

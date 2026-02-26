@@ -6,12 +6,14 @@ from .controllers.dashboard_controller import home_dashboard
 from .controllers.error_controller import not_found_action
 from .controllers.finanzas_controller import finanzas_dashboard, gestionar_transaccion
 from .controllers.auth_controller import auth_page, login_action, register_action, logout_action
+from .controllers.estadisticas_controller import estadisticas_dashboard
 
 def get_route_handler(path, method):
     clean_path = path.rstrip('/') if path != '/' else path
     routes = {
         ('/', 'GET'): lambda request: home_dashboard(request),
         ('/finanzas', 'GET'): lambda request: finanzas_dashboard(request),
+        ('/estadisticas', 'GET'): lambda request: estadisticas_dashboard(request),
         
         # --- Rutas de Autenticación ---
         ('/acceso', 'GET'): lambda request: auth_page(request), 
