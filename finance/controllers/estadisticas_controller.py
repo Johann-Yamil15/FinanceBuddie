@@ -31,16 +31,28 @@ def estadisticas_dashboard(request):
     else:
         score_text, score_class = "Sin datos", "text-muted"
 
+    # --- INICIO DE LA CORRECCIÓN PARA TRADUCIR ---
+    DIAS_ES = {
+        'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles', 
+        'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo'
+    }
+    
+    MESES_ES = {
+        'Jan': 'Ene', 'Feb': 'Feb', 'Mar': 'Mar', 'Apr': 'Abr', 'May': 'May', 'Jun': 'Jun',
+        'Jul': 'Jul', 'Aug': 'Ago', 'Sep': 'Sep', 'Oct': 'Oct', 'Nov': 'Nov', 'Dec': 'Dic'
+    }
+
+    # Traducimos el día pico
+    dia_pico_original = insights.get('dia_mas_gasto', '')
+    dia_pico_traducido = DIAS_ES.get(dia_pico_original, dia_pico_original)
+    # --- FIN DE LA CORRECCIÓN PARA TRADUCIR ---
+
     # 4. Preparación de datos para Chart.js (Formatos JSON)
     labels_dona = [c['categoria'] for c in categorias_gastos]
     values_dona = [float(c['total']) for c in categorias_gastos]
 
-    labels_linea = [t['mes'] for t in tendencia]
-    ingresos_linea = [float(t['ingresos']) for t in tendencia]
-    gastos_linea = [float(t['gastos']) for t in tendencia]
-
-    # Gráfica de Barras/Líneas: Tendencia
-    labels_linea = [t['mes'] for t in tendencia]
+    # --- APLICAMOS LA TRADUCCIÓN A LOS MESES DE LA GRÁFICA ---
+    labels_linea = [MESES_ES.get(t['mes'], t['mes']) for t in tendencia] 
     ingresos_linea = [float(t['ingresos']) for t in tendencia]
     gastos_linea = [float(t['gastos']) for t in tendencia]
 
@@ -51,8 +63,8 @@ def estadisticas_dashboard(request):
         
         # Tarjetas de Insights
         "comparativa": comparativa,
-        "max_gasto": f"{insights['max_gasto']:,.2f}",
-        "dia_pico": insights['dia_mas_gasto'],
+        "max_gasto": f"{insights.get('max_gasto', 0):,.2f}",
+        "dia_pico": dia_pico_traducido, # <--- AQUÍ PASAMOS EL DÍA YA EN ESPAÑOL
         "score_text": score_text,
         "score_class": score_class,
 
@@ -62,7 +74,7 @@ def estadisticas_dashboard(request):
             "values": values_dona
         },
         "chart_tendencia": {
-            "labels": labels_linea,
+            "labels": labels_linea, # <--- AQUÍ PASAMOS LOS MESES EN ESPAÑOL
             "ingresos": ingresos_linea,
             "gastos": gastos_linea
         },

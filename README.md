@@ -106,6 +106,20 @@ CREATE TABLE ChatMensajes (
 GO
 
 -- ==========================================
+-- TABLA PARA HISTORIAL DE APORTACIONES A METAS
+-- ==========================================
+CREATE TABLE HistorialAhorro (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    MetaId INT NOT NULL,
+    Monto DECIMAL(18,2) NOT NULL, -- Cuánto dinero se agregó en este movimiento
+    Fecha DATETIME DEFAULT GETDATE(),
+    
+    -- Si eliminas la meta, se borra su historial automáticamente
+    CONSTRAINT FK_Historial_Meta FOREIGN KEY (MetaId) REFERENCES MetasAhorro(Id) ON DELETE CASCADE
+);
+GO
+
+-- ==========================================
 -- DATOS DE PRUEBA
 -- ==========================================
 
