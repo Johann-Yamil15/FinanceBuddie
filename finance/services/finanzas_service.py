@@ -1,13 +1,14 @@
 from django.db import connection
 # Importamos la CLASE Categoria desde el ARCHIVO Categoria
-from finance.models.Categoria import Categoria 
+from finance.models.Categoria import Categoria
 # Importamos la CLASE Transaccion desde el ARCHIVO Transaccion
 from finance.models.Transaccion import Transaccion
 # Importamos el nuevo modelo de Metas de Ahorro
 from finance.models.MetaAhorro import MetaAhorro
 
+
 class FinanzasService:
-    
+
     @staticmethod
     def _dictfetchall(cursor):
         """Retorna todas las filas de un cursor como un diccionario"""
@@ -20,7 +21,7 @@ class FinanzasService:
             # Traemos todas las categorías ordenadas alfabéticamente
             cursor.execute("SELECT Id, Nombre FROM Categorias ORDER BY Nombre")
             filas = FinanzasService._dictfetchall(cursor)
-        
+
         # Convertimos las filas de SQL a objetos Python usando tu modelo
         return [Categoria.from_dict(fila) for fila in filas]
 
@@ -39,7 +40,7 @@ class FinanzasService:
             """
             cursor.execute(query, [usuario_id])
             filas = FinanzasService._dictfetchall(cursor)
-        
+
         return [Transaccion.from_dict(fila) for fila in filas]
 
     @staticmethod
@@ -56,7 +57,7 @@ class FinanzasService:
 
         ingresos = 0.0
         gastos = 0.0
-        
+
         for fila in filas:
             if fila['Tipo'] == 'ingreso' and fila['Total'] is not None:
                 ingresos = float(fila['Total'])
@@ -64,7 +65,8 @@ class FinanzasService:
                 gastos = float(fila['Total'])
 
         balance = ingresos - gastos
-        porcentaje = round(((ingresos - gastos) / ingresos) * 100) if ingresos > 0 else 0
+        porcentaje = round(((ingresos - gastos) / ingresos)
+                           * 100) if ingresos > 0 else 0
 
         return {
             "ingresos": ingresos,
@@ -72,7 +74,7 @@ class FinanzasService:
             "balance": balance,
             "porcentaje_ahorro": porcentaje
         }
-        
+
     @staticmethod
     def crear_transaccion(usuario_id, categoria_id, tipo, monto):
         with connection.cursor() as cursor:
@@ -108,15 +110,13 @@ class FinanzasService:
 
     @staticmethod
     def crear_meta(usuario_id, nombre, monto_objetivo):
-        from finance.models.Usuario import Usuario
-        
+        # Creamos y guardamos directamente sin buscar al 'Usuario' con .objects
         try:
-            usuario = Usuario.objects.get(id=usuario_id)
             nueva_meta = MetaAhorro(
-                usuario=usuario,
+                usuario_id=usuario_id,
                 nombre=nombre,
                 monto_objetivo=monto_objetivo,
-                monto_actual=0.0 # Siempre inicia en 0
+                monto_actual=0.00
             )
             nueva_meta.save()
             return nueva_meta

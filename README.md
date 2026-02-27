@@ -75,6 +75,37 @@ CREATE TABLE Transacciones (
 GO
 
 -- ==========================================
+-- TABLA PARA METAS DE AHORRO
+-- ==========================================
+CREATE TABLE MetasAhorro (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UsuarioId INT NOT NULL,
+    Nombre NVARCHAR(100) NOT NULL,
+    MontoObjetivo DECIMAL(18,2) NOT NULL,
+    MontoActual DECIMAL(18,2) DEFAULT 0.00,
+    FechaCreacion DATETIME DEFAULT GETDATE(),
+    
+    -- Opcional: Si ya tienes una tabla de Usuarios, puedes descomentar la siguiente línea
+    CONSTRAINT FK_Metas_Usuarios FOREIGN KEY (UsuarioId) REFERENCES Usuarios(Id)
+);
+GO
+
+-- ==========================================
+-- TABLA PARA EL HISTORIAL DEL CHAT (IA)
+-- ==========================================
+CREATE TABLE ChatMensajes (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UsuarioId INT NOT NULL,
+    Remitente NVARCHAR(20) NOT NULL, -- Guardará 'usuario' o 'ia'
+    Mensaje NVARCHAR(MAX) NOT NULL,  -- NVARCHAR(MAX) porque las respuestas de IA pueden ser largas
+    Fecha DATETIME DEFAULT GETDATE(),
+    
+    -- Opcional: Si ya tienes una tabla de Usuarios, puedes descomentar la siguiente línea
+    CONSTRAINT FK_Chat_Usuarios FOREIGN KEY (UsuarioId) REFERENCES Usuarios(Id)
+);
+GO
+
+-- ==========================================
 -- DATOS DE PRUEBA
 -- ==========================================
 
