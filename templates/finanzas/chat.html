@@ -1,0 +1,187 @@
+<style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 180px); /* Ajusta a tu pantalla */
+        background-color: white;
+        border-radius: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        border: 1px solid #f3f4f6;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .ai-avatar {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #4f46e5, #818cf8);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background-color: #f8fafc;
+    }
+
+    .message {
+        max-width: 75%;
+        padding: 1rem 1.25rem;
+        border-radius: 1rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        position: relative;
+    }
+
+    /* Mensaje de la IA (Izquierda) */
+    .message.ai {
+        background-color: white;
+        color: #334155;
+        align-self: flex-start;
+        border-bottom-left-radius: 0.25rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    /* Mensaje del Usuario (Derecha) */
+    .message.user {
+        background-color: #4f46e5;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 0.25rem;
+        box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+    }
+
+    .chat-input-area {
+        padding: 1.25rem;
+        background-color: white;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .chat-input {
+        flex: 1;
+        border: 1px solid #cbd5e1;
+        border-radius: 2rem;
+        padding: 0.75rem 1.25rem;
+        outline: none;
+        transition: border-color 0.2s;
+        font-size: 0.95rem;
+    }
+
+    .chat-input:focus {
+        border-color: #4f46e5;
+    }
+
+    .btn-send {
+        background-color: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .btn-send:hover {
+        background-color: #4338ca;
+        transform: scale(1.05);
+    }
+</style>
+
+<section class="finance-container p-4">
+    <div class="balance-section mb-3">
+        <p class="section-label text-muted fw-semibold mb-1" style="font-size: 0.85rem; letter-spacing: 0.5px;">TU ASESOR PERSONAL</p>
+        <div class="balance-header">
+            <h1 class="balance-amount color-primary m-0" style="color: #4f46e5; font-weight: 800; font-size: 2.5rem;">Asistente IA</h1>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="ai-avatar">
+                <i data-lucide="bot" size="24"></i>
+            </div>
+            <div>
+                <h5 style="margin: 0; font-weight: 700; color: #1e293b; font-size: 1.1rem;">Finance Buddie AI</h5>
+                <small style="color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                    <span style="width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; display: inline-block;"></span>
+                    En línea
+                </small>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai">
+                ¡Hola! Soy tu asistente financiero de <strong>Finance Buddie</strong>. 🤖 <br><br>
+                Puedo ayudarte a analizar tus gastos, darte consejos sobre cómo alcanzar tus metas de ahorro, o explicarte conceptos financieros. ¿En qué te puedo ayudar hoy?
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Escribe tu pregunta aquí..." autocomplete="off">
+            <button class="btn-send" id="btnSend">
+                <i data-lucide="send" size="20"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<script>
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
+    const chatInput = document.getElementById('chatInput');
+    const btnSend = document.getElementById('btnSend');
+    const chatMessages = document.getElementById('chatMessages');
+
+    function sendMessage() {
+        const text = chatInput.value.trim();
+        if (text === '') return;
+
+        // 1. Agregar el mensaje del usuario
+        const userMsg = document.createElement('div');
+        userMsg.className = 'message user';
+        userMsg.innerText = text;
+        chatMessages.appendChild(userMsg);
+        
+        // Limpiar input y bajar el scroll
+        chatInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // 2. Simular que la IA está escribiendo y responde (esto luego lo conectaremos a la IA real)
+        setTimeout(() => {
+            const aiMsg = document.createElement('div');
+            aiMsg.className = 'message ai';
+            aiMsg.innerHTML = '<i>Estoy analizando tu consulta... ¡Pronto conectaremos esto a la Inteligencia Artificial! 🚀</i>';
+            chatMessages.appendChild(aiMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 1000);
+    }
+
+    // Enviar al hacer clic o presionar Enter
+    btnSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+</script>

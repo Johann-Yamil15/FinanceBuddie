@@ -1,10 +1,10 @@
-# finance/services/finanzas_service.py
 from django.db import connection
 # Importamos la CLASE Categoria desde el ARCHIVO Categoria
 from finance.models.Categoria import Categoria 
-
 # Importamos la CLASE Transaccion desde el ARCHIVO Transaccion
 from finance.models.Transaccion import Transaccion
+# Importamos el nuevo modelo de Metas de Ahorro
+from finance.models.MetaAhorro import MetaAhorro
 
 class FinanzasService:
     
@@ -72,6 +72,7 @@ class FinanzasService:
             "balance": balance,
             "porcentaje_ahorro": porcentaje
         }
+        
     @staticmethod
     def crear_transaccion(usuario_id, categoria_id, tipo, monto):
         with connection.cursor() as cursor:
@@ -97,3 +98,28 @@ class FinanzasService:
             # Al borrar la fila, el SUM(Monto) del resumen ignorará este valor,
             # logrando el efecto contable de "devolver" el dinero.
             cursor.execute("DELETE FROM Transacciones WHERE Id = %s", [t_id])
+
+    # ---> NUEVA FUNCIÓN PARA LAS METAS <---
+    @staticmethod
+    def obtener_metas_usuario(usuario_id):
+        if not usuario_id:
+            return []
+        return MetaAhorro.objects.filter(usuario_id=usuario_id)
+
+    @staticmethod
+    def crear_meta(usuario_id, nombre, monto_objetivo):
+        from finance.models.Usuario import Usuario
+        
+        try:
+            usuario = Usuario.objects.get(id=usuario_id)
+            nueva_meta = MetaAhorro(
+                usuario=usuario,
+                nombre=nombre,
+                monto_objetivo=monto_objetivo,
+                monto_actual=0.0 # Siempre inicia en 0
+            )
+            nueva_meta.save()
+            return nueva_meta
+        except Exception as e:
+            print(f"Error al guardar meta: {e}")
+            raise Exception("No se pudo crear la meta en la base de datos.")

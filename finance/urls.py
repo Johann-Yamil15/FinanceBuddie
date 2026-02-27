@@ -1,10 +1,10 @@
-# finance/urls.py
 from django.urls import re_path
 from django.views.decorators.csrf import csrf_exempt
 import re
 from .controllers.dashboard_controller import home_dashboard
 from .controllers.error_controller import not_found_action
-from .controllers.finanzas_controller import finanzas_dashboard, gestionar_transaccion
+# Importamos TODAS las funciones del finanzas_controller:
+from .controllers.finanzas_controller import finanzas_dashboard, gestionar_transaccion, metas_dashboard, gestionar_meta, chat_dashboard
 from .controllers.auth_controller import auth_page, login_action, register_action, logout_action
 from .controllers.estadisticas_controller import estadisticas_dashboard
 
@@ -13,6 +13,11 @@ def get_route_handler(path, method):
     routes = {
         ('/', 'GET'): lambda request: home_dashboard(request),
         ('/finanzas', 'GET'): lambda request: finanzas_dashboard(request),
+        ('/metas', 'GET'): lambda request: metas_dashboard(request),
+        
+        # --- RUTA DEL CHAT ---
+        ('/chat', 'GET'): lambda request: chat_dashboard(request),
+        
         ('/estadisticas', 'GET'): lambda request: estadisticas_dashboard(request),
         
         # --- Rutas de Autenticación ---
@@ -23,16 +28,15 @@ def get_route_handler(path, method):
 
         # --- API Endpoints ---
         ('/api/finanzas', 'POST'): lambda request: gestionar_transaccion(request),
+        ('/api/metas', 'POST'): lambda request: gestionar_meta(request),
     }
-  
 
-    # Intentar match exacto primero (GET y POST general)
+    # Intentar match exacto primero
     handler = routes.get((clean_path, method))
     if handler:
         return handler
 
-    # --- Manejo de Rutas con ID (PUT y DELETE) ---
-    # Ejemplo: /api/finanzas/5
+    # Manejo de Rutas con ID (PUT y DELETE)
     match = re.match(r'^/api/finanzas/(\+?\d+)$', path)
     if match:
         t_id = int(match.group(1))
