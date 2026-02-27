@@ -114,9 +114,10 @@
                 <div class="form-group">
                     <label>Tipo</label>
                     <div class="type-selector">
-                        <input type="radio" name="tipo" value="gasto" id="type-gasto" checked>
+                        <input type="radio" name="tipo" value="gasto" id="type-gasto" checked onclick="toggleCategoria(true)">
                         <label for="type-gasto">Gasto</label>
-                        <input type="radio" name="tipo" value="ingreso" id="type-ingreso">
+                        
+                        <input type="radio" name="tipo" value="ingreso" id="type-ingreso" onclick="toggleCategoria(false)">
                         <label for="type-ingreso">Ingreso</label>
                     </div>
                 </div>
@@ -124,7 +125,8 @@
                     <label>Monto</label>
                     <input type="number" name="monto" step="0.01" placeholder="0.00" required>
                 </div>
-                <div class="form-group">
+                
+                <div class="form-group" id="group-categoria">
                     <label>Categoría</label>
                     <select name="categoria" required>
                         {% for categoria in categorias %}
@@ -132,6 +134,7 @@
                         {% endfor %}
                     </select>
                 </div>
+                
                 <div class="modal-actions">
                     <button type="button" class="btn-ghost" onclick="toggleModal(false)">Cancelar</button>
                     <button type="submit" class="btn-primary">Guardar</button>
@@ -141,4 +144,20 @@
     </div>
 
     <script src="/static/js/finanzas/finanzas.js"></script>
+    
+    <script>
+        function toggleCategoria(mostrar) {
+            const divCategoria = document.getElementById('group-categoria');
+            const selectCategoria = divCategoria.querySelector('select');
+            
+            if (mostrar) {
+                divCategoria.style.display = 'block';
+                selectCategoria.required = true;
+            } else {
+                divCategoria.style.display = 'none';
+                selectCategoria.required = false;
+                selectCategoria.value = ""; // Importante para que el backend detecte vacío
+            }
+        }
+    </script>
 </section>

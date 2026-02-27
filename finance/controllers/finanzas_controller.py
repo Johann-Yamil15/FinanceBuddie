@@ -1,7 +1,6 @@
 import json
 from django.shortcuts import redirect
 from django.http import HttpResponse, JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from core.render import render_view
 from datetime import datetime
@@ -48,12 +47,28 @@ def gestionar_transaccion(request, t_id=None):
     try:
         if request.method == 'POST':
             data = json.loads(request.body)
-            FinanzasService.crear_transaccion(usuario_id, data['categoria_id'], data['tipo'], data['monto'])
+            # CORRECCIÓN: Leemos 'categoria' que es el nombre del campo en el HTML
+            # Si no viene, enviamos None para que el servicio lo maneje.
+            cat_val = data.get('categoria') 
+            
+            FinanzasService.crear_transaccion(
+                usuario_id, 
+                cat_val, 
+                data['tipo'], 
+                data['monto']
+            )
             return JsonResponse({'status': 'success', 'message': 'Transacción registrada'})
 
         elif request.method == 'PUT' and t_id:
             data = json.loads(request.body)
-            FinanzasService.actualizar_transaccion(t_id, data['categoria_id'], data['tipo'], data['monto'])
+            cat_val = data.get('categoria')
+            
+            FinanzasService.actualizar_transaccion(
+                t_id, 
+                cat_val, 
+                data['tipo'], 
+                data['monto']
+            )
             return JsonResponse({'status': 'success', 'message': 'Transacción actualizada'})
 
         elif request.method == 'DELETE' and t_id:
@@ -61,14 +76,14 @@ def gestionar_transaccion(request, t_id=None):
             return JsonResponse({'status': 'success', 'message': 'Movimiento eliminado'})
 
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        print(f"Error backend: {e}") # Log para depuración
+        return JsonResponse({'status': 'error', 'message': f"Error interno: {str(e)}"}, status=500)
     return JsonResponse({'status': 'error', 'message': 'Acción no válida'}, status=400)
 
 def metas_dashboard(request):
     usuario_id = request.session.get('usuario_id')
     nombre_usuario = request.session.get('usuario_nombre', 'Usuario')
-    if not usuario_id:
-        return redirect('/acceso')
+    if not usuario_id: return redirect('/acceso')
 
     metas_ahorro = FinanzasService.obtener_metas_usuario(usuario_id)
     context = {
@@ -86,8 +101,7 @@ def metas_dashboard(request):
 @csrf_exempt
 def gestionar_meta(request):
     usuario_id = request.session.get('usuario_id')
-    if not usuario_id:
-        return JsonResponse({'status': 'error', 'message': 'Sesión inválida'}, status=401)
+    if not usuario_id: return JsonResponse({'status': 'error', 'message': 'Sesión inválida'}, status=401)
     
     if request.method == 'POST':
         try:
@@ -98,15 +112,10 @@ def gestionar_meta(request):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
-# ==========================================
-# NUEVA FUNCIÓN PARA EL CHAT
-# ==========================================
 def chat_dashboard(request):
     usuario_id = request.session.get('usuario_id')
     nombre_usuario = request.session.get('usuario_nombre', 'Usuario')
-    
-    if not usuario_id:
-        return redirect('/acceso')
+    if not usuario_id: return redirect('/acceso')
 
     context = {
         "titulo": "Asistente IA - Finance Buddie",
@@ -116,6 +125,5 @@ def chat_dashboard(request):
             {"name": "Asistente IA", "url": "#"}
         ]
     }
-
     html = render_view('finanzas/chat.html', context)
     return HttpResponse(html)

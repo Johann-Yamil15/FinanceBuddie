@@ -1,8 +1,9 @@
 <style>
+    /* --- ESTILOS GENERALES DEL CHAT --- */
     .chat-container {
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 180px); /* Ajusta a tu pantalla */
+        height: calc(100vh - 180px);
         background-color: white;
         border-radius: 1rem;
         box-shadow: 0 2px 10px rgba(0,0,0,0.03);
@@ -41,12 +42,18 @@
     }
 
     .message {
-        max-width: 75%;
+        max-width: 80%;
         padding: 1rem 1.25rem;
         border-radius: 1rem;
         font-size: 0.95rem;
         line-height: 1.5;
         position: relative;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     /* Mensaje de la IA (Izquierda) */
@@ -68,10 +75,41 @@
         box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
     }
 
-    .chat-input-area {
-        padding: 1.25rem;
+    /* --- ESTILOS DE SUGERENCIAS (CHIPS) --- */
+    .chat-suggestions {
+        padding: 0.5rem 1.25rem;
         background-color: white;
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
         border-top: 1px solid #f1f5f9;
+        /* Ocultar barra de scroll pero permitir scroll */
+        scrollbar-width: none; 
+    }
+    .chat-suggestions::-webkit-scrollbar { display: none; }
+
+    .chip {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        font-weight: 500;
+    }
+    .chip:hover {
+        background: #e0e7ff;
+        color: #4f46e5;
+        border-color: #c7d2fe;
+    }
+
+    /* --- AREA DE INPUT --- */
+    .chat-input-area {
+        padding: 1rem 1.25rem 1.25rem 1.25rem; /* Ajustado */
+        background-color: white;
         display: flex;
         gap: 0.75rem;
     }
@@ -135,8 +173,15 @@
         <div class="chat-messages" id="chatMessages">
             <div class="message ai">
                 ¡Hola! Soy tu asistente financiero de <strong>Finance Buddie</strong>. 🤖 <br><br>
-                Puedo ayudarte a analizar tus gastos, darte consejos sobre cómo alcanzar tus metas de ahorro, o explicarte conceptos financieros. ¿En qué te puedo ayudar hoy?
+                He analizado tus movimientos recientes. ¿Te gustaría saber sobre tu meta para Cancún o ver un análisis de tus gastos?
             </div>
+        </div>
+
+        <div class="chat-suggestions">
+            <button class="chip" onclick="enviarPreguntaRapida('¿Cómo va mi meta de viaje?')">✈️ Meta Cancún</button>
+            <button class="chip" onclick="enviarPreguntaRapida('¿En qué he gastado más?')">📊 Gastos altos</button>
+            <button class="chip" onclick="enviarPreguntaRapida('¿Cuál es mi salud financiera?')">❤️ Salud Financiera</button>
+            <button class="chip" onclick="enviarPreguntaRapida('Dame un consejo')">💡 Consejo</button>
         </div>
 
         <div class="chat-input-area">
@@ -149,37 +194,103 @@
 </section>
 
 <script>
+    // Inicializar iconos
     if (typeof lucide !== 'undefined') { lucide.createIcons(); }
 
     const chatInput = document.getElementById('chatInput');
     const btnSend = document.getElementById('btnSend');
     const chatMessages = document.getElementById('chatMessages');
 
+    // --- BASE DE CONOCIMIENTOS ESTÁTICA (SIMULACIÓN IA) ---
+    // Estos datos coinciden con tus capturas de pantalla
+    const knowledgeBase = [
+        {
+            keywords: ["hola", "buenos", "buenas"],
+            response: "¡Hola! ¿Listo para revisar tus finanzas hoy? 😊"
+        },
+        {
+            keywords: ["gasto", "gastado", "donde va", "categoría"],
+            response: "Analizando tus movimientos recientes... 🧐<br>Tu gasto más alto registrado es de <strong>$150.00</strong>. Las categorías donde más dinero se mueve son <strong>Educación</strong> y <strong>Comida</strong>."
+        },
+        {
+            keywords: ["meta", "ahorro", "cancún", "viaje", "objetivo"],
+            response: "¡Hablemos de tu '<strong>Viaje a Cancún</strong>'! ✈️🏖️<br>Tu objetivo es <strong>$25,000</strong>. Tienes un buen flujo de caja este mes (+$3,450). Si mantienes este ritmo, podrías empezar a reservar vuelos en unos 7 meses."
+        },
+        {
+            keywords: ["salud", "estado", "balance", "situación"],
+            response: "Tu salud financiera es <strong>Excelente</strong> 🚀.<br>Tienes ingresos por <strong>$3,700.00</strong> y has mantenido tus gastos en solo $250.00. ¡Ese es un margen de ahorro del 93%!"
+        },
+        {
+            keywords: ["consejo", "tip", "recomendación", "ayuda"],
+            response: "💡 <strong>Tip Financiero:</strong> He notado que tus gastos suelen concentrarse los viernes. Intenta establecer un 'presupuesto de fin de semana' los jueves por la noche para no excederte."
+        },
+        {
+            keywords: ["gracias", "ok", "vale"],
+            response: "¡De nada! Estoy aquí para ayudarte a crecer. 🌱"
+        }
+    ];
+
+    const defaultResponse = "Aún estoy aprendiendo sobre tus finanzas específicas. Por ahora, intenta preguntarme sobre tus <em>gastos</em>, tu <em>meta de viaje</em> o tu <em>salud financiera</em>.";
+
+    // --- LÓGICA DEL CHAT ---
+
+    function procesarPregunta(textoUsuario) {
+        const texto = textoUsuario.toLowerCase();
+        
+        // Buscar coincidencia
+        const match = knowledgeBase.find(item => 
+            item.keywords.some(keyword => texto.includes(keyword))
+        );
+
+        return match ? match.response : defaultResponse;
+    }
+
+    function agregarMensaje(texto, tipo) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${tipo}`;
+        msgDiv.innerHTML = texto; // Usar innerHTML para permitir negritas
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function enviarPreguntaRapida(texto) {
+        chatInput.value = texto;
+        sendMessage();
+    }
+
     function sendMessage() {
         const text = chatInput.value.trim();
         if (text === '') return;
 
-        // 1. Agregar el mensaje del usuario
-        const userMsg = document.createElement('div');
-        userMsg.className = 'message user';
-        userMsg.innerText = text;
-        chatMessages.appendChild(userMsg);
+        // 1. Mostrar mensaje usuario
+        agregarMensaje(text, 'user');
         
-        // Limpiar input y bajar el scroll
+        // Limpiar input
         chatInput.value = '';
+
+        // 2. Simular "Escribiendo..."
+        const loadingId = 'loading-' + Date.now();
+        const loadingMsg = document.createElement('div');
+        loadingMsg.className = 'message ai';
+        loadingMsg.id = loadingId;
+        loadingMsg.innerHTML = '<span style="animation: blink 1s infinite">Escribiendo...</span>';
+        chatMessages.appendChild(loadingMsg);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // 2. Simular que la IA está escribiendo y responde (esto luego lo conectaremos a la IA real)
+        // 3. Responder después de un delay (Simulación IA)
         setTimeout(() => {
-            const aiMsg = document.createElement('div');
-            aiMsg.className = 'message ai';
-            aiMsg.innerHTML = '<i>Estoy analizando tu consulta... ¡Pronto conectaremos esto a la Inteligencia Artificial! 🚀</i>';
-            chatMessages.appendChild(aiMsg);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 1000);
+            // Eliminar mensaje de carga
+            const loader = document.getElementById(loadingId);
+            if(loader) loader.remove();
+
+            // Obtener respuesta inteligente simulada
+            const respuestaIA = procesarPregunta(text);
+            agregarMensaje(respuestaIA, 'ai');
+
+        }, 1200); // 1.2 segundos de delay
     }
 
-    // Enviar al hacer clic o presionar Enter
+    // Event Listeners
     btnSend.addEventListener('click', sendMessage);
     chatInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') sendMessage();
